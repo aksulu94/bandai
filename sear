@@ -1,3 +1,4 @@
+setTimeout(() => {
 var ref = document.querySelector("body > div > main > div > div:nth-child(4) > div > h3").textContent;
 if (ref.includes("Easy")){
 
@@ -54,3 +55,4 @@ if (ref.includes("Easy")){
   }
 })();
 }
+}, 3000);

@@ -1,58 +1,74 @@
-setTimeout(() => {
-var ref = document.querySelector("body > div > main > div > div:nth-child(4) > div > h3").textContent;
-if (ref.includes("Easy")){
+const targetSelect = document.querySelector('div[role="combobox"] + select'); 
+const observer = new MutationObserver((mutations, obs) => {
+  const select = document.querySelector('select[aria-hidden="true"]');
 
-(async function searchShipsSequentially() {
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  function setElementValue(element, value) {
-    if (!element) return;
-    const prototype = element.tagName === 'SELECT'
-      ? window.HTMLSelectElement.prototype
-      : window.HTMLInputElement.prototype;
-
-    const valueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
-
-    if (valueSetter) {
-      valueSetter.call(element, value);
-    } else {
-      element.value = value;
+  if (select && select.options.length > 1) {
+    console.log('Combobox options loaded!', select);
+    obs.disconnect();
+    var ref = document.querySelector("body > div > main > div > div:nth-child(4) > div > h3").textContent;
+    if (ref.includes("Easy")){
+    
+    (async function searchShipsSequentially() {
+      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      function setElementValue(element, value) {
+        if (!element) return;
+        const prototype = element.tagName === 'SELECT'
+          ? window.HTMLSelectElement.prototype
+          : window.HTMLInputElement.prototype;
+    
+        const valueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+    
+        if (valueSetter) {
+          valueSetter.call(element, value);
+        } else {
+          element.value = value;
+        }
+    
+        ['input', 'change', 'blur'].forEach((eventType) => {
+          element.dispatchEvent(new Event(eventType, { bubbles: true }));
+        });
+      }
+      let selects = document.querySelectorAll('fieldset select');
+      if (selects[0]) {
+        setElementValue(selects[0], FrmDt);
+        console.log('Step 1: Selected "From" ('+FrmDt+')');
+      } else {
+        console.warn('Step 1: "From" element not found.');
+      }
+      await delay(1500);
+      selects = document.querySelectorAll('fieldset select');
+      if (selects[1]) {
+        setElementValue(selects[1], ToDt);
+        console.log('Step 2: Selected "To" ( '+ToDt+' )');
+      } else {
+        console.warn('Step 2: "To" element not found.');
+      }
+      await delay(1000);
+      const dateInput = document.querySelector('.react-datepicker__input-container input');
+      if (dateInput) {
+        setElementValue(dateInput, TrvDt);
+        console.log('Step 3: Set date (' + TrvDt + ')');
+      } else {
+        console.warn('Step 3: Date input element not found.');
+      }
+      await delay(1000);
+      const searchBtn = document.querySelector('button[type="submit"]');
+      if (searchBtn) {
+        searchBtn.click();
+        console.log('Step 4: Search button clicked.');
+      } else {
+        console.warn('Step 4: Search button not found.');
+      }
+    })();
     }
+  }
+});
 
-    ['input', 'change', 'blur'].forEach((eventType) => {
-      element.dispatchEvent(new Event(eventType, { bubbles: true }));
-    });
-  }
-  let selects = document.querySelectorAll('fieldset select');
-  if (selects[0]) {
-    setElementValue(selects[0], FrmDt);
-    console.log('Step 1: Selected "From" ('+FrmDt+')');
-  } else {
-    console.warn('Step 1: "From" element not found.');
-  }
-  await delay(1500);
-  selects = document.querySelectorAll('fieldset select');
-  if (selects[1]) {
-    setElementValue(selects[1], ToDt);
-    console.log('Step 2: Selected "To" ( '+ToDt+' )');
-  } else {
-    console.warn('Step 2: "To" element not found.');
-  }
-  await delay(1000);
-  const dateInput = document.querySelector('.react-datepicker__input-container input');
-  if (dateInput) {
-    setElementValue(dateInput, TrvDt);
-    console.log('Step 3: Set date (' + TrvDt + ')');
-  } else {
-    console.warn('Step 3: Date input element not found.');
-  }
-  await delay(1000);
-  const searchBtn = document.querySelector('button[type="submit"]');
-  if (searchBtn) {
-    searchBtn.click();
-    console.log('Step 4: Search button clicked.');
-  } else {
-    console.warn('Step 4: Search button not found.');
-  }
-})();
-}
-}, 3000);
+observer.observe(document.body, { 
+  childList: true, 
+  subtree: true, 
+  attributes: true, 
+  characterData: true 
+});   
+
+

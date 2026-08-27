@@ -72,15 +72,20 @@ observer.observe(document.body, {
 });   
 
 
-if (!window.location.href.includes("add-permit")) {
-    console.error("Stopped: URL does not contain 'add-permit'.");
-} else {
-    var input = document.querySelector("#permit-application-no");
-    var button = document.querySelector('button[type="submit"]');
+var checkUrl = setInterval(function () {
+    if (window.location.href.includes("add-permit")) {
+        clearInterval(checkUrl);
 
-    if (!input || !button) {
-        console.error("Permit input or Submit button not found.");
-    } else {
+        console.log("add-permit detected:", window.location.href);
+
+        var input = document.querySelector("#permit-application-no");
+        var button = document.querySelector('button[type="submit"]');
+
+        if (!input || !button) {
+            console.error("Permit input or Submit button not found.");
+            return;
+        }
+
         input.value = permitNo;
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -91,7 +96,10 @@ if (!window.location.href.includes("add-permit")) {
         setTimeout(function () {
             button.click();
         }, 1500);
+    } else {
+        console.log("Waiting for add-permit page...");
     }
-}
+}, 1000);
+
 
 

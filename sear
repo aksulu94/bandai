@@ -75,7 +75,6 @@ observer.observe(document.body, {
 var checkUrl = setInterval(function () {
     if (window.location.href.includes("add-permit")) {
         clearInterval(checkUrl);
-
         console.log("add-permit detected:", window.location.href);
 
         var input = document.querySelector("#permit-application-no");
@@ -85,21 +84,48 @@ var checkUrl = setInterval(function () {
             console.error("Permit input or Submit button not found.");
             return;
         }
-
-        input.value = permitNo;
+        input.focus();
+        input.value = "";
         input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.dispatchEvent(new Event("change", { bubbles: true }));
+        var i = 0;
 
-        console.log("Permit number entered:", permitNo);
-        console.log("Submitting in 1.5 seconds...");
+        function typeNextCharacter() {
+            if (i >= permitNo.length) {
+                console.log("Permit number entered:", input.value);
+                console.log("Submitting in 1.5 seconds...");
+                setTimeout(function () {
+                    button.click();
+                }, 1500);
 
-        setTimeout(function () {
-            button.click();
-        }, 1500);
+                return;
+            }
+
+            var char = permitNo[i];
+            input.dispatchEvent(new KeyboardEvent("keydown", {
+                key: char,
+                code: "Digit" + char,
+                bubbles: true
+            }));
+
+            input.value += char;
+            input.dispatchEvent(new InputEvent("input", {
+                inputType: "insertText",
+                data: char,
+                bubbles: true
+            }));
+
+            input.dispatchEvent(new KeyboardEvent("keyup", {
+                key: char,
+                code: "Digit" + char,
+                bubbles: true
+            }));
+            i++;
+            setTimeout(typeNextCharacter, 100);
+        }
+        typeNextCharacter();
     } else {
         console.log("Waiting for add-permit page...");
     }
 }, 1000);
-
 
 

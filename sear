@@ -70,62 +70,90 @@ observer.observe(document.body, {
   attributes: true, 
   characterData: true 
 });   
-
-
 var checkUrl = setInterval(function () {
-    if (window.location.href.includes("add-permit")) {
-        clearInterval(checkUrl);
-        console.log("add-permit detected:", window.location.href);
+    if (!window.location.href.includes("add-permit")) {
+        console.log("Waiting for add-permit page...");
+        return;
+    }
+    clearInterval(checkUrl);
+    console.log("add-permit detected:", window.location.href);
+    var input = document.querySelector("#permit-application-no");
+    var button = document.querySelector('button[type="submit"]');
+    if (!input || !button) {
+        console.error("Permit input or Submit button not found.");
+        return;
+    }
+    var nativeSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+    ).set;
+    input.focus();
+    nativeSetter.call(input, "");
+    input.dispatchEvent(new Event("input", {
+        bubbles: true,
+        composed: true
+    }));
+    var i = 0;
+    function typeCharacter() {
+        if (i >= permitNo.length) {
+            console.log("Finished typing:", input.value);
+            input.dispatchEvent(new Event("change", {
+                bubbles: true,
+                composed: true
+            }));
 
-        var input = document.querySelector("#permit-application-no");
-        var button = document.querySelector('button[type="submit"]');
+            input.dispatchEvent(new Event("blur", {
+                bubbles: true
+            }));
+            console.log("Submitting in .7 seconds...");
+            setTimeout(function () {
+                var form = input.closest("form");
+                if (form) {
+                    console.log("Submitting form...");
+                    if (typeof form.requestSubmit === "function") {
+                        form.requestSubmit(button);
+                    } else {
+                        button.click();
+                    }
+                } else {
+                    console.log("Clicking submit button...");
+                    button.click();
+                }
 
-        if (!input || !button) {
-            console.error("Permit input or Submit button not found.");
+            }, 700);
             return;
         }
+        var char = permitNo[i];
         input.focus();
-        input.value = "";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        var i = 0;
-
-        function typeNextCharacter() {
-            if (i >= permitNo.length) {
-                console.log("Permit number entered:", input.value);
-                console.log("Submitting in 1.5 seconds...");
-                setTimeout(function () {
-                    button.click();
-                }, 1500);
-
-                return;
-            }
-
-            var char = permitNo[i];
-            input.dispatchEvent(new KeyboardEvent("keydown", {
-                key: char,
-                code: "Digit" + char,
-                bubbles: true
-            }));
-
-            input.value += char;
-            input.dispatchEvent(new InputEvent("input", {
-                inputType: "insertText",
-                data: char,
-                bubbles: true
-            }));
-
-            input.dispatchEvent(new KeyboardEvent("keyup", {
-                key: char,
-                code: "Digit" + char,
-                bubbles: true
-            }));
-            i++;
-            setTimeout(typeNextCharacter, 100);
-        }
-        typeNextCharacter();
-    } else {
-        console.log("Waiting for add-permit page...");
+        input.setSelectionRange(
+            input.value.length,
+            input.value.length
+        );
+        input.dispatchEvent(new KeyboardEvent("keydown", {
+            key: char,
+            code: "Digit" + char,
+            bubbles: true,
+            composed: true
+        }));
+        nativeSetter.call(input, input.value + char);
+        input.dispatchEvent(new InputEvent("input", {
+            bubbles: true,
+            composed: true,
+            inputType: "insertText",
+            data: char
+        }));
+        input.dispatchEvent(new KeyboardEvent("keyup", {
+            key: char,
+            code: "Digit" + char,
+            bubbles: true,
+            composed: true
+        }));
+        console.log("Typed:", input.value);
+        i++;
+        setTimeout(typeCharacter, 200);
     }
+    typeCharacter();
+
 }, 1000);
 
 

@@ -72,3 +72,26 @@ observer.observe(document.body, {
 });   
 
 
+if (!window.location.href.includes("add-permit")) {
+    console.error("Stopped: URL does not contain 'add-permit'.");
+} else {
+    var input = document.querySelector("#permit-application-no");
+    var button = document.querySelector('button[type="submit"]');
+
+    if (!input || !button) {
+        console.error("Permit input or Submit button not found.");
+    } else {
+        input.value = permitNo;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+
+        console.log("Permit number entered:", permitNo);
+        console.log("Submitting in 1.5 seconds...");
+
+        setTimeout(function () {
+            button.click();
+        }, 1500);
+    }
+}
+
+

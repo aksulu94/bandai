@@ -460,7 +460,7 @@ function smartReload(){
 setInterval(()=>{
  if(!ST || onPay()) return;
  const idleTime=Date.now()-lastActivity;
-
+ if(!location.href.toLowerCase().includes("cart")) return;
  if(idleTime>6500){
   if(!reloadTimer){
    scheduleReload(2000,"WATCHDOG");

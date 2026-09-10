@@ -459,12 +459,10 @@ function smartReload(){
 /* WATCHDOG */
 setInterval(()=>{
  if(!ST || onPay()) return;
- 
 if(
   !location.href.toLowerCase().includes("cart") &&
   !location.href.toLowerCase().includes("login")
 ) return;
-
  const idleTime=Date.now()-lastActivity;
 
  if(idleTime>6500){

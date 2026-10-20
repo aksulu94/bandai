@@ -95,33 +95,52 @@ function reloadAfterDelay() {
   }, delay);
 }
 
-const observer = new MutationObserver(muts => {
-  for (const m of muts) {
-    for (const n of m.addedNodes) {
-      if (n.nodeType !== 1) continue;
+function checkToastText(root) {
+  if (!root) return false;
 
-      const text = (n.innerText || "").toLowerCase();
+  const text = (
+    root.innerText ||
+    root.textContent ||
+    ""
+  ).toLowerCase().replace(/\s+/g, " ").trim();
 
-      /* unavailable toast */
-      if (text.includes(TOAST_TEXT)) {
-        onSeatUnavailable();
-        return;
-      }
+  if (text.includes("unavailable")) {
+    console.warn("[Toast detected]", text);
+    onSeatUnavailable();
+    return true;
+  }
 
-      /* incomplete seat selection toast */
-      if (
-        text.includes("seat selection incomplete") ||
-        text.includes("please select seats for all passengers")
-      ) {
-        reloadAfterDelay();
-        return;
+  return false;
+}
+
+const observer = new MutationObserver(mutations => {
+  for (const mutation of mutations) {
+    // Text changed inside an existing element
+    if (mutation.type === "characterData") {
+      if (checkToastText(mutation.target.parentElement)) return;
+    }
+
+    // Existing element's content or child elements changed
+    if (mutation.type === "childList") {
+      if (checkToastText(mutation.target)) return;
+
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (checkToastText(node)) return;
+        }
       }
     }
   }
 });
 
-const toaster = document.getElementById("_rht_toaster") || document.body;
-observer.observe(toaster, { childList: true, subtree: true });
+observer.observe(document.body, {
+  childList: true,
+  subtree: true,
+  characterData: true
+});
+
+// Also check if the toast already exists when the script starts
+checkToastText(document.body);
 
 const FB = document.createElement("button");
 FB.textContent = "Pause";
